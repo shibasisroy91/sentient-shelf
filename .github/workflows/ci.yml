@@ -1,0 +1,41 @@
+name: Sentient-Shelf CI
+
+# 1. When should this assembly line run?
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+# 2. What jobs should it perform?
+jobs:
+  build-and-test:
+    name: Build and Typecheck
+    runs-on: ubuntu-latest # Run this on a fresh Linux server in the cloud
+
+    steps:
+      # Step A: Clone the code into the server
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step B: Install Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20" # Matching the current LTS version
+
+      # Step C: Install dependencies (like Drizzle, Tailwind, React)
+      - name: Install Dependencies
+        run: npm ci # 'ci' is strictly for automated environments, it reads package-lock.json
+
+      # Step D: The Ultimate Test
+      # In Next.js, 'npm run build' automatically checks TypeScript types AND runs ESLint.
+      # If there is a single type error or bad import, this step will fail, blocking the bad code.
+      - name: Build Application
+        run: npm run build
+        env:
+          # We need to provide dummy env variables just so the build step doesn't panic
+          DATABASE_URL: postgresql://dummy
+          AUTH_SECRET: dummy_secret
+          AUTH_GITHUB_ID: dummy
+          AUTH_GITHUB_SECRET: dummy
